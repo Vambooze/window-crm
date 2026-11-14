@@ -1,0 +1,21 @@
+# Reference compose file. Deployed copies pin the build to a specific commit.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      TZ: America/Chicago
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@crm.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      - /opt/window-crm/data:/data
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [app]
+    command: ["caddy", "reverse-proxy", "--from", "${CRM_DOMAIN:-crm.2-25-165-80.sslip.io}", "--to", "app:3000"]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/window-crm/caddy:/data
