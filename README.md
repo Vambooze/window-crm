@@ -18,8 +18,8 @@ quotes priced from a price list, invoices & payments, installer mobile view with
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` | First office login, used only when the database has no users |
 | `TZ` | Time zone for "today" (e.g. `America/New_York`) |
 
-## Deploy (Docker)
-The VPS runs `docker-compose.yaml`: the app container (built from this repo) behind Caddy, which
-gets an HTTPS certificate automatically. Data lives on the host in `/opt/window-crm/data`
-(SQLite database + photos); back that folder up. Set `CRM_DOMAIN` to use your own domain
-(point its DNS A record at the VPS first).
+## Deploy
+Live at https://crm.2-25-165-80.sslip.io (Hostinger VPS, Docker Manager project `window-crm`).
+See `docker-compose.yaml`: a stock `node:22-alpine` container downloads a pinned commit of this repo
+at startup, behind Caddy for HTTPS. Data lives on the host in `/opt/window-crm/data`
+(SQLite database + photos), so back that folder up. `Dockerfile` is there if you'd rather build an image.

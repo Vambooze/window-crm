@@ -1,21 +1,29 @@
-# Reference compose file. Deployed copies pin the build to a specific commit.
+# What runs on the VPS (Hostinger Docker Manager project "window-crm").
+# The app container downloads the pinned commit (APP_REF) of this repo at startup, so deploying an
+# update = push to GitHub, then redeploy this file with APP_REF set to the new commit SHA.
+# Port 80 on the VPS is used by another service, so Caddy serves HTTPS on 443 only and gets its
+# certificate with the TLS-ALPN challenge.
 services:
   app:
-    build: .
+    image: node:22-alpine
     restart: unless-stopped
+    working_dir: /app
     environment:
       TZ: America/Chicago
+      DATA_DIR: /data
+      PORT: "3000"
+      APP_REF: main   # pin to a commit SHA when deploying
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@crm.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    command: ["sh", "-c", "set -e; rm -rf /app/*; wget -qO- https://codeload.github.com/Vambooze/window-crm/tar.gz/$$APP_REF | tar xz --strip-components=1 -C /app; exec node --disable-warning=ExperimentalWarning server.js"]
     volumes:
       - /opt/window-crm/data:/data
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on: [app]
-    command: ["caddy", "reverse-proxy", "--from", "${CRM_DOMAIN:-crm.2-25-165-80.sslip.io}", "--to", "app:3000"]
+    command: ["caddy", "reverse-proxy", "--from", "https://crm.2-25-165-80.sslip.io", "--to", "app:3000", "--disable-redirects"]
     ports:
-      - "80:80"
       - "443:443"
     volumes:
       - /opt/window-crm/caddy:/data
